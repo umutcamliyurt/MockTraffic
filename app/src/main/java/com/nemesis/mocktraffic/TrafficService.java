@@ -180,6 +180,11 @@ public class TrafficService extends Service {
 
     // Method to make an HTTP request to a given URL
     private void makeHttpRequest(final String url) {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            Log.e("TrafficService", "Invalid URL scheme: " + url);
+            return; // Skip this URL since it's not an HTTP/HTTPS URL
+        }
+
         Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -188,7 +193,6 @@ public class TrafficService extends Service {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.e("TrafficService", "Failed to load URL: " + url, e);
-                // Optionally, you can broadcast failure
             }
 
             @Override
@@ -210,6 +214,7 @@ public class TrafficService extends Service {
             }
         });
     }
+
 
     // Broadcast the updated stats
     private void broadcastStats() {

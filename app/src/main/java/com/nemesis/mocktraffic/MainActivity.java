@@ -3,10 +3,10 @@ package com.nemesis.mocktraffic;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,6 +36,12 @@ public class MainActivity extends AppCompatActivity {
             if (TrafficService.ACTION_UPDATE_STATS.equals(intent.getAction())) {
                 int requestCount = intent.getIntExtra("requestCount", 0);
                 trafficStatsTextView.setText("Traffic Stats: " + requestCount + " requests");
+
+                // Save request count to SharedPreferences
+                SharedPreferences preferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putInt("request_count", requestCount);
+                editor.apply();
             }
         }
     };
@@ -50,6 +56,15 @@ public class MainActivity extends AppCompatActivity {
         trafficStatsTextView = findViewById(R.id.trafficStatsTextView);
         statusTextView = findViewById(R.id.statusTextView);
 
+        // Restore saved traffic generation setting
+        SharedPreferences preferences = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        boolean trafficEnabled = preferences.getBoolean("traffic_enabled", false);
+        trafficCheckBox.setChecked(trafficEnabled);
+
+        // Restore the saved request count
+        int savedRequestCount = preferences.getInt("request_count", 0);
+        trafficStatsTextView.setText("Traffic Stats: " + savedRequestCount + " requests");
+
         // Check and request POST_NOTIFICATIONS permission if needed
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -59,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Toggle traffic generation when checkbox is clicked
         trafficCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Save the traffic generation setting
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("traffic_enabled", isChecked);
+            editor.apply();
+
             if (isChecked) {
                 // Check if POST_NOTIFICATIONS permission is granted (Android 13+)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -104,7 +124,11 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         // Register the receiver
         IntentFilter filter = new IntentFilter(TrafficService.ACTION_UPDATE_STATS);
-        registerReceiver(statsReceiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {  // Android 13 and above
+            registerReceiver(statsReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(statsReceiver, filter); // Older versions
+        }
     }
 
     @Override
