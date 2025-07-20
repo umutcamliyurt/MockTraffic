@@ -1,11 +1,7 @@
-Description:
-
 A random DNS and HTTPS internet traffic noise generator provides enhanced privacy and security by obfuscating users' online activities. It generates random, non-user-initiated queries to DNS servers and encrypted HTTPS connections, making it difficult for third parties such as ISPs, surveillance systems, or malicious actors to analyze and track actual browsing patterns. This added layer of traffic noise reduces the effectiveness of traffic analysis and profiling techniques, making it harder to identify specific behaviors, websites, or services accessed by the user. 
 
-Features:
+<b>Features:</b>
 
 - Small codebase
-
 - Runs in the background
-
 - Built in Java
